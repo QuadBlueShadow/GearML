@@ -13,12 +13,12 @@ states = []
 tests = []
 for i in range(10):
     states.append([i])
-    tests.append(3*i+2)
+    tests.append(2*i+2)
 
 print(model.run(states[0]), tests[0])
 
 loss = []
-for i in range(1000000):
+for i in range(1000):
     preds = []
     for state in states:
         preds.append(model.run(state))
