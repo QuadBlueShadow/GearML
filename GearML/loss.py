@@ -23,7 +23,4 @@ class BasicDistanceLoss:
                 for i in range(len(l)):
                     new_loss[i] += l[i]
 
-            for i in range(len(new_loss)):
-                new_loss[i] /= num
-
             return new_loss
