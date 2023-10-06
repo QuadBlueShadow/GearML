@@ -144,7 +144,7 @@ class Model:
             
             if type(layer) == Linear:
                 if x != len(self.model.layers) - 1:
-                    bias_mults = self.look_through_sequence(x, True)
+                    bias_mults = self.look_through_sequence(x)
 
                 for w in range(len(layer.biases)):
                     if x == len(self.model.layers) - 1:
@@ -152,7 +152,7 @@ class Model:
                     else:
                         layer.biases[w] += self.lr * bias_mults[w]
 
-                weight_mults = self.look_through_sequence(x, False)
+                weight_mults = self.look_through_sequence(x)
                 #print(weight_mults)
 
                 for w in range(len(layer.neurons)):
@@ -166,100 +166,51 @@ class Model:
         if self.lr > self.decay:
             self.lr -= self.decay
                 
-    def look_through_sequence(self, layer_index, bias=True, og=True):
-        if bias:
-            n_layer_weights = []
-            weights = []
-            bias_mults = []
+    def look_through_sequence(self, layer_index, og=True):
+        n_layer_weights = []
+        weights = []
+        bias_mults = []
 
-            layer = self.model.layers[layer_index]
+        layer = self.model.layers[layer_index]
 
-            if layer_index != len(self.model.layers) - 1:
-                if layer_index < len(self.model.layers) - 1:
-                    n_layer_weights = self.look_through_sequence(layer_index + 2, bias, False)
-                for x in range(len(layer.neurons)):
-                    neuron = layer.neurons[x]
-        
-                    if not og:
-                        t_weights = []
-                        for z in range(len(neuron.weights)):
-                            c_weights = n_layer_weights[z]
-                
-                            for weight in c_weights:
-                                t_weights.append(neuron.weights[z] * weight)
-                
-                        weights.append(t_weights)
+        if layer_index != len(self.model.layers) - 1:
+            if layer_index < len(self.model.layers) - 1:
+                n_layer_weights = self.look_through_sequence(layer_index + 2, False)
+            for x in range(len(layer.neurons)):
+                neuron = layer.neurons[x]
+    
+                if not og:
+                    t_weights = []
+                    for z in range(len(neuron.weights)):
+                        c_weights = n_layer_weights[z]
+            
+                        for weight in c_weights:
+                            t_weights.append(neuron.weights[z] * weight)
+            
+                    weights.append(t_weights)
 
-            if og:
-                for c in range(len(n_layer_weights)):
-                    weights = n_layer_weights[c]
-                    mult = 0
-                    for weight in weights:
-                        mult += weight
+        if og:
+            for c in range(len(n_layer_weights)):
+                weights = n_layer_weights[c]
+                mult = 0
+                for weight in weights:
+                    mult += weight
 
-                    if mult == 0:
-                        mult = 1
+                if mult == 0:
+                    mult = 1
 
-                    bias_mults.append(mult)
+                bias_mults.append(mult)
 
-            if len(bias_mults) > 0:
-                return bias_mults
-            elif len(weights) > 0:
-                return weights
-            else:
-                weights = []
-                n = self.model.layers[-1].neurons
-                for i in range(len(n)):
-                    neuron = []
-                    for x in range(len(n[i].weights)):
-                        neuron.append(n[i].weights[x] * self.loss[x])
-                    weights.append(neuron)
-                return weights
+        if len(bias_mults) > 0:
+            return bias_mults
+        elif len(weights) > 0:
+            return weights
         else:
-            n_layer_weights = []
             weights = []
-            weight_mults = []
-
-            layer = self.model.layers[layer_index]
-
-            if layer_index != len(self.model.layers) - 1:
-                if layer_index < len(self.model.layers) - 1:
-                    n_layer_weights = self.look_through_sequence(layer_index + 2, bias, False)
-                for x in range(len(layer.neurons)):
-                    neuron = layer.neurons[x]
-
-                    if not og:
-                        t_weights = []
-                        for z in range(len(neuron.weights)):
-                            c_weights = n_layer_weights[z]
-
-                            for weight in c_weights:
-                                t_weights.append(neuron.weights[z] * weight)
-
-                            weights.append(t_weights)
-
-            if og:
-                for c in range(len(n_layer_weights)):
-                    weights = n_layer_weights[c]
-                    mult = 0
-                    for weight in weights:
-                        mult += weight
-
-                    if mult == 0:
-                        mult = 1
-
-                    weight_mults.append(mult)
-
-            if len(weight_mults) > 0:
-                return weight_mults
-            elif len(weights) > 0:
-                return weights
-            else:
-                weights = []
-                n = self.model.layers[-1].neurons
-                for i in range(len(n)):
-                    neuron = []
-                    for x in range(len(n[i].weights)):
-                        neuron.append(n[i].weights[x] * self.loss[x])
-                    weights.append(neuron)
-                return weights
+            n = self.model.layers[-1].neurons
+            for i in range(len(n)):
+                neuron = []
+                for x in range(len(n[i].weights)):
+                    neuron.append(n[i].weights[x] * self.loss[x])
+                weights.append(neuron)
+            return weights
